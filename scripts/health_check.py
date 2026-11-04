@@ -10,6 +10,7 @@ def check_disk(path="c:\\"):
         "used_gb": round(used / gb, 1),
         "free_gb": round(free / gb, 1),
         "used_percent": round(used / total * 100, 1),
+        "free_percent": round(free / total * 100, 1),
         "ok": used / total < 0.9,
     }
 
