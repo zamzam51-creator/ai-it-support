@@ -21,7 +21,17 @@ def check_dns(host):
         return {"check": "dns", "ok": True, "detail": ip}
     except socket.gaierror:
         return {"check": "dns", "ok": False, "detail": f"Could not resolve {host}"}
-    
+
+def check_port(host, port=443):
+    """Check whether a TCP port is open on host."""
+    try:
+        with socket.create_connection((host, port), timeout=3):
+            return {"check": "port", "ok": True, "detail": f"{host}:{port} is open"}
+    except OSError:
+        return {"check": "port", "ok": False, "detail": f"{host}:{port} is closed or unreachable"}
+        
 print(check_disk())
 print(check_dns("example.com"))
 print(check_dns("this-domain-does-not-exist-12345.com"))
+print(check_port("example.com"))
+print(check_port("example.com", 81))
