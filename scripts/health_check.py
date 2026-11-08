@@ -1,6 +1,8 @@
 import shutil 
 import socket
 
+import requests
+
 def check_disk(path="c:\\"):
     """Return disk space info for path, in GB."""
     total, used, free = shutil.disk_usage(path)
@@ -29,9 +31,26 @@ def check_port(host, port=443):
             return {"check": "port", "ok": True, "detail": f"{host}:{port} is open"}
     except OSError:
         return {"check": "port", "ok": False, "detail": f"{host}:{port} is closed or unreachable"}
-        
+
+def check_website(url):
+    """Check that url responds, and report status code and response time."""
+    try:
+        response = requests.get(url, timeout=5)
+        ms = round(response.elapsed.total_seconds() * 1000)
+        return {
+            "check": "website",
+            "ok": response.status_code < 400,
+            "detail": f"{response.status_code} in {ms} ms",
+        }
+    except requests.RequestException:
+        return {"check": "website", "ok": False, "detail": f"Could not reach {url}"}
+          
 print(check_disk())
+
 print(check_dns("example.com"))
 print(check_dns("this-domain-does-not-exist-12345.com"))
 print(check_port("example.com"))
 print(check_port("example.com", 81))
+print(check_website("https://example.com"))
+print(check_website("https://example.com/this-page-does-not-exist"))
+print(check_website("https://this-domain-does-not-exist-12345.com"))
