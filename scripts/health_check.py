@@ -1,14 +1,19 @@
-import shutil 
+import json
+import shutil
 import socket
 
 import requests
 
-def check_disk(path="c:\\"):
+
+def check_disk(path="C:\\"):
     """Return disk space info for path, in GB."""
-    total, used, free = shutil.disk_usage(path)
+    try:
+        total, used, free = shutil.disk_usage(path)
+    except OSError:
+        return {"check": "disk", "ok": False, "detail": f"Could not read disk {path}"}
     gb = 1024 ** 3
     return {
-        "check":"disk",
+        "check": "disk",
         "total_gb": round(total / gb, 1),
         "used_gb": round(used / gb, 1),
         "free_gb": round(free / gb, 1),
@@ -16,6 +21,8 @@ def check_disk(path="c:\\"):
         "free_percent": round(free / total * 100, 1),
         "ok": used / total < 0.9,
     }
+
+
 def check_dns(host):
     """Look up the IP address for host."""
     try:
@@ -24,6 +31,7 @@ def check_dns(host):
     except socket.gaierror:
         return {"check": "dns", "ok": False, "detail": f"Could not resolve {host}"}
 
+
 def check_port(host, port=443):
     """Check whether a TCP port is open on host."""
     try:
@@ -31,6 +39,7 @@ def check_port(host, port=443):
             return {"check": "port", "ok": True, "detail": f"{host}:{port} is open"}
     except OSError:
         return {"check": "port", "ok": False, "detail": f"{host}:{port} is closed or unreachable"}
+
 
 def check_website(url):
     """Check that url responds, and report status code and response time."""
@@ -44,13 +53,27 @@ def check_website(url):
         }
     except requests.RequestException:
         return {"check": "website", "ok": False, "detail": f"Could not reach {url}"}
-          
-print(check_disk())
 
-print(check_dns("example.com"))
-print(check_dns("this-domain-does-not-exist-12345.com"))
-print(check_port("example.com"))
-print(check_port("example.com", 81))
-print(check_website("https://example.com"))
-print(check_website("https://example.com/this-page-does-not-exist"))
-print(check_website("https://this-domain-does-not-exist-12345.com"))
+
+def run_all_checks(host):
+    """Run every check against host and return a list of results."""
+    return [
+        check_disk(),
+        check_dns(host),
+        check_port(host),
+        check_website(f"https://{host}"),
+    ]
+
+
+def save_report(results, filename="report.json"):
+    """Save results to a JSON file."""
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+
+
+if __name__ == "__main__":
+    results = run_all_checks("example.com")
+    for result in results:
+        print(result)
+    save_report(results)
+    print("Report saved to report.json")
