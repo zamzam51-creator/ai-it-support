@@ -1,6 +1,7 @@
 import json
 import shutil
 import socket
+import sys
 
 import requests
 
@@ -72,8 +73,18 @@ def save_report(results, filename="report.json"):
 
 
 if __name__ == "__main__":
-    results = run_all_checks("example.com")
-    for result in results:
-        print(result)
+    if len(sys.argv) > 1:
+        host = sys.argv[1]
+    else:
+        host = "example.com"
+
+    results = run_all_checks(host)
+    print(json.dumps(results, indent=2))
     save_report(results)
+
+    passed = 0
+    for result in results:
+        if result["ok"]:
+            passed += 1
+    print(f"{passed} of {len(results)} checks passed")
     print("Report saved to report.json")
