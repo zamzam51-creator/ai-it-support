@@ -42,10 +42,12 @@ python scripts/health_check.py example.com
 
 If no domain is given, it checks `example.com`. Results are printed and saved to `report.json`.
 
+
 ### Sample output
 
 ```
-
+python scripts/health_check.py google.com
+[
   {
     "check": "dns",
     "ok": true,
@@ -61,9 +63,8 @@ If no domain is given, it checks `example.com`. Results are printed and saved to
     "ok": true,
     "detail": "200 in 664 ms"
   }
-
+]
 4 of 4 checks passed
-
 ```
 
 ### Run the tests
